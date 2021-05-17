@@ -13,6 +13,9 @@ logger = logging.getLogger('IMM Data Visualization - Dam Occupancy Rates')
 
 
 def data_preparation():
+    """
+    :rtype: dataframe
+    """
     # getting data
     data = utils.getting_raw_data(dat_name='dor')
     data.columns = ['date', 'occupancy_rate', 'reserved_water']

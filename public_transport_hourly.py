@@ -7,6 +7,7 @@ import io
 import json
 import logging
 import os
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
@@ -19,6 +20,9 @@ logger = logging.getLogger('IMM Data Visualization - Hourly Public Transport')
 
 
 def data_preparation():
+    """
+    :rtype: dataframe
+    """
     # getting data
     dat = utils.getting_raw_data(dat_name='pth', url_list=True)
     dat.reset_index(drop=True, inplace=True)
@@ -39,15 +43,20 @@ def data_preparation():
     return data
 
 
-def data_generator(data, year, month):
+def data_generator(data, year, month, is_line=False):
     """
     :param data: dataframe
     :param year: int
     :param month: string
+    :param is_line: bool
     :rtype: dataframe
     """
-    return data[(data['year'] == year) & (data['month'] == month)][
-        ['date_time', 'number_of_passenger', 'number_of_passage']].groupby('date_time').sum().reset_index()
+    grouping_cols = ['date_time']
+    cols = ['date_time', 'number_of_passenger', 'number_of_passage']
+    if is_line is True:
+        grouping_cols.append('line')
+        cols.append('line')
+    return data[(data['year'] == year) & (data['month'] == month)][cols].groupby(grouping_cols).sum().reset_index()
 
 
 def creating_daily_data(df):
@@ -60,6 +69,10 @@ def creating_daily_data(df):
 
 
 def creating_day_avg_data(df):
+    """
+    :param df: dataframe
+    :rtype: dataframe
+    """
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
     df['day_value'] = df['date_time'].apply(lambda row: row.day_name())
@@ -208,30 +221,225 @@ def creating_bar_graph_based_transport_type_in_details(dat, value_type, type_des
         fig.show()
 
 
+def creating_avg_data_all_date_breakdown(df, lines, time_type, d=None, h=None):
+    """
+    :param df: dataframe
+    :param lines: list
+    :param time_type: string
+    :param d: list
+    :param h: list
+    :rtype: dataframe
+    """
+    # Homework :]
+    # Please run the same method again, combining the d and h parameters in a single parameter
+    # Hint: data type comparison
+    df['day_value'] = df['date_time'].apply(lambda row: row.day_name())
+    df['hour'] = df['date_time'].apply(lambda row: row.hour)
+    df_ = df[df['line'].isin(lines)].reset_index(drop=True)
+
+    if time_type == 'days':
+        df__ = df_[df_['day_value'].isin(d)][['day_value', 'hour', 'line',
+                                              'number_of_passenger', 'number_of_passage']].reset_index(drop=True)
+        df_grouped = df__.groupby(['day_value', 'hour', 'line']).mean().reset_index().round(2) \
+            .rename(columns={'number_of_passenger': 'avg_number_of_passenger',
+                             'number_of_passage': 'avg_number_of_passage'})
+        return df_grouped
+    else:
+        df__ = df_[df_['hour'].isin(h)][['hour', 'line',
+                                         'number_of_passenger', 'number_of_passage']].reset_index(drop=True)
+        df_grouped = df__.groupby(['hour', 'line']).mean().reset_index().round(2) \
+            .rename(columns={'number_of_passenger': 'avg_number_of_passenger',
+                             'number_of_passage': 'avg_number_of_passage'})
+        return df_grouped
+
+
+def transform(d):
+    return {value: key for key, value in d.items()}
+
+
+def creating_line_graph_based_date(time_type, df_2020, df_2021, col, m=1):
+    """
+    :param time_type: string
+    :param df_2020: dataframe
+    :param df_2021: dataframe
+    :param col: string
+    :param m: int
+    :return: Plotly Line Graph
+    """
+    if col == 'avg_number_of_passenger':
+        title_ = 'Average Passenger Count by Given Time Type'
+        yxs = 'Avg Passenger Count'
+    else:
+        title_ = 'Average Passage Count by based on Given Time Type'
+        yxs = 'Avg Passage Count'
+
+    if time_type == 'days':
+        xaxis_title_ = 'Day(s) & Hours'
+        xaxis_ = dict()
+    else:
+        xaxis_title_ = 'Hours'
+        xaxis_ = dict(tickmode='linear', tick0=1)
+
+    reverse_months = [{value: key for key, value in config.months.items()}][0]
+    nm_month = reverse_months[m]
+
+    order_list_20 = df_2020['date'].unique().tolist()
+    order_list_21 = df_2021['date'].unique().tolist()
+    df_2020_pv = pd.pivot_table(df_2020, values=col, index=['date'],
+                                columns='line', aggfunc=np.sum).reindex(order_list_20)
+    df_2021_pv = pd.pivot_table(df_2021, values=col, index=['date'],
+                                columns='line', aggfunc=np.sum).reindex(order_list_21)
+
+    fig_20 = go.Figure()
+    for c in df_2020_pv.columns:
+        fig_20.add_trace(go.Scatter(x=df_2020_pv.index, y=df_2020_pv[c].values,
+                                    name=c + ' // {0} 2020'.format(nm_month),
+                                    mode='lines',
+                                    line=dict(shape='linear'),
+                                    connectgaps=True,
+                                    showlegend=True
+                                    )
+                         )
+
+    fig_21 = go.Figure()
+    for c in df_2021_pv.columns:
+        fig_21.add_trace(go.Scatter(x=df_2021_pv.index, y=df_2021_pv[c].values,
+                                    name=c + ' // {0} 2021'.format(nm_month),
+                                    mode='lines',
+                                    line=dict(shape='linear'),
+                                    connectgaps=True,
+                                    showlegend=True
+                                    )
+                         )
+
+    fig_20.update_layout(
+        title=title_,
+        xaxis=xaxis_,
+        xaxis_title=xaxis_title_,
+        yaxis_title=yxs,
+        font=dict(
+            family='Verdana',
+            size=10,
+            color='black'
+        )
+    )
+
+    fig_21.update_layout(
+        title=title_,
+        xaxis=xaxis_,
+        xaxis_title=xaxis_title_,
+        yaxis_title=yxs,
+        font=dict(
+            family='Verdana',
+            size=10,
+            color='black'
+        )
+    )
+
+    return fig_20.show(), fig_21.show()
+
+
+def creating_line_graph_for_single_line(time_type, df_2020, df_2021, col, sline, m=1):
+    if col == 'avg_number_of_passenger':
+        title_ = 'Average Passenger Count by Given Time Type'
+        yxs = 'Avg Passenger Count'
+    else:
+        title_ = 'Average Passage Count by based on Given Time Type'
+        yxs = 'Avg Passage Count'
+
+    if time_type == 'days':
+        xaxis_title_ = 'Day(s) & Hours'
+        xaxis_ = dict()
+    else:
+        xaxis_title_ = 'Hours'
+        xaxis_ = dict(tickmode='linear', tick0=1)
+
+    reverse_months = [{value: key for key, value in config.months.items()}][0]
+    nm_month = reverse_months[m]
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_2020['hour'], y=df_2020[col],
+                             line=dict(color='royalblue'),
+                             showlegend=True, name='{0}'.format(sline) + ' // {0} 2020'.format(nm_month),
+                             mode='lines'))
+    fig.add_trace(go.Scatter(x=df_2021['hour'], y=df_2021[col],
+                             line=dict(color='firebrick'),
+                             showlegend=True, name='{0}'.format(sline) + ' // {0} 2021'.format(nm_month),
+                             mode='lines'))
+
+    fig.update_layout(
+        title=title_,
+        xaxis=xaxis_,
+        xaxis_title=xaxis_title_,
+        yaxis_title=yxs,
+        font=dict(
+            family='Verdana',
+            size=10,
+            color='black'
+        )
+    )
+    return fig.show()
+
+
 def main():
     df = data_preparation()
 
     # The localhost page is opened on the Internet browser.
     # Each plot is presented in a separate browser tab.
+    # graph part I
     for m in config.pth_months:
         df_20 = data_generator(data=df, year=2020, month=m)
         df_21 = data_generator(data=df, year=2021, month=m)
         for col in config.pth_cols:
-            if m == 'February':
-                m_ = 2
-            else:
-                m_ = 1
+            m_ = [config.months[key] for key in config.months if key == m][0]
             creating_line_graph_based_day(creating_daily_data(df_20.copy()),
                                           creating_daily_data(df_21.copy()),
                                           col=col, m=m_)
             creating_line_graph_based_day(creating_day_avg_data(df_20.copy()),
                                           creating_day_avg_data(df_21.copy()),
                                           col='avg_' + col, m=m_)
+    # graph part II
     for col in config.pth_cols:
         creating_bar_graph_based_transport_type(dat=df.copy(), col=col)
+
+    # graph part III
     for col in config.pth_cols:
         for t in config.pth_types:
             creating_bar_graph_based_transport_type_in_details(dat=df.copy(), value_type=col, type_desc=t)
+
+    # graph part IV
+    for m in config.pth_months:
+        df_20 = data_generator(data=df.copy(), year=2020, month=m, is_line=True)
+        df_21 = data_generator(data=df.copy(), year=2021, month=m, is_line=True)
+        m_ = [config.months[key] for key in config.months if key == m][0]
+        for c in config.pth_cols:
+            col_ = 'avg_' + c
+
+            # Day - Hour
+            dh_20 = creating_avg_data_all_date_breakdown(df=df_20.copy(), lines=config.pth_lines, time_type='days',
+                                                         d=config.pth_days)
+            dh_20['date'] = dh_20.apply(lambda row: row['day_value'] + ' - Hour ' + str(row['hour']), axis=1)
+            dh_21 = creating_avg_data_all_date_breakdown(df=df_21.copy(), lines=config.pth_lines, time_type='days',
+                                                         d=config.pth_days)
+            dh_21['date'] = dh_21.apply(lambda row: row['day_value'] + ' - Hour ' + str(row['hour']), axis=1)
+            creating_line_graph_based_date(time_type='days', df_2020=dh_20.copy(), df_2021=dh_21.copy(), col=col_,
+                                           m=m_)
+
+            # Hour
+            h_20 = creating_avg_data_all_date_breakdown(df=df_20.copy(), lines=config.pth_lines, time_type='hours',
+                                                        h=config.pth_hours)
+            h_21 = creating_avg_data_all_date_breakdown(df=df_21.copy(), lines=config.pth_lines, time_type='hours',
+                                                        h=config.pth_hours)
+            creating_line_graph_based_date(time_type='hours', df_2020=h_20.copy().rename(columns={'hour': 'date'}),
+                                           df_2021=h_21.copy().rename(columns={'hour': 'date'}), col=col_, m=m_)
+
+            # Single line - All hours
+            h_20 = creating_avg_data_all_date_breakdown(df=df_20.copy(), lines=config.pth_lines_single,
+                                                        time_type='hours', h=config.hours)
+            h_21 = creating_avg_data_all_date_breakdown(df=df_21.copy(), lines=config.pth_lines_single,
+                                                        time_type='hours', h=config.hours)
+            creating_line_graph_for_single_line(time_type='hours', df_2020=h_20.copy(), df_2021=h_21.copy(),
+                                                col=col_, sline=config.pth_lines_single, m=m_)
 
 
 if __name__ == "__main__":

@@ -29,3 +29,10 @@ pth_cols = ['number_of_passenger', 'number_of_passage']
 pth_months = ['January', 'February']
 pth_years = [2020, 2021]
 pth_types = ['Highway', 'Rail', 'Sea']
+pth_lines = ['AKSARAY-HAVALİMANI', 'KABATAŞ-BAĞCILAR', 'MARMARAY', 'TAKSİM-4.LEVENT']
+pth_lines_single = 'METROBÜS'
+pth_days = ['Monday', 'Tuesday']
+pth_hours = [7, 8, 9, 10]
+hours = [i for i in range(0, 24)]
+months = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+          'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
