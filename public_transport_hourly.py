@@ -253,10 +253,6 @@ def creating_avg_data_all_date_breakdown(df, lines, time_type, d=None, h=None):
         return df_grouped
 
 
-def transform(d):
-    return {value: key for key, value in d.items()}
-
-
 def creating_line_graph_based_date(time_type, df_2020, df_2021, col, m=1):
     """
     :param time_type: string
@@ -434,11 +430,11 @@ def main():
                                            df_2021=h_21.copy().rename(columns={'hour': 'date'}), col=col_, m=m_)
 
             # Single line - All hours
-            h_20 = creating_avg_data_all_date_breakdown(df=df_20.copy(), lines=config.pth_lines_single,
-                                                        time_type='hours', h=config.hours)
-            h_21 = creating_avg_data_all_date_breakdown(df=df_21.copy(), lines=config.pth_lines_single,
-                                                        time_type='hours', h=config.hours)
-            creating_line_graph_for_single_line(time_type='hours', df_2020=h_20.copy(), df_2021=h_21.copy(),
+            ah_20 = creating_avg_data_all_date_breakdown(df=df_20.copy(), lines=config.pth_lines_single,
+                                                         time_type='hours', h=config.hours)
+            ah_21 = creating_avg_data_all_date_breakdown(df=df_21.copy(), lines=config.pth_lines_single,
+                                                         time_type='hours', h=config.hours)
+            creating_line_graph_for_single_line(time_type='hours', df_2020=ah_20.copy(), df_2021=ah_21.copy(),
                                                 col=col_, sline=config.pth_lines_single, m=m_)
 
 
