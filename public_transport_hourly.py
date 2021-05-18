@@ -1,18 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import argparse
 import config
-import io
-import json
 import logging
-import os
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
-import requests
-import sys
 import utils
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -336,6 +330,15 @@ def creating_line_graph_based_date(time_type, df_2020, df_2021, col, m=1):
 
 
 def creating_line_graph_for_single_line(time_type, df_2020, df_2021, col, sline, m=1):
+    """
+    :param time_type: string
+    :param df_2020: dataframe
+    :param df_2021: dataframe
+    :param col: string
+    :param sline: string
+    :param m: int
+    :rtype: dataframe
+    """
     if col == 'avg_number_of_passenger':
         title_ = 'Average Passenger Count by Given Time Type'
         yxs = 'Avg Passenger Count'
@@ -378,6 +381,9 @@ def creating_line_graph_for_single_line(time_type, df_2020, df_2021, col, sline,
 
 
 def main():
+    """
+    :return: Plotly Figure
+    """
     df = data_preparation()
 
     # The localhost page is opened on the Internet browser.
@@ -436,6 +442,14 @@ def main():
                                                          time_type='hours', h=config.hours)
             creating_line_graph_for_single_line(time_type='hours', df_2020=ah_20.copy(), df_2021=ah_21.copy(),
                                                 col=col_, sline=config.pth_lines_single, m=m_)
+
+
+def putting_into_datapane():
+    return
+
+
+def putting_into_streamlit():
+    return
 
 
 if __name__ == "__main__":

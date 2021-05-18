@@ -36,3 +36,6 @@ pth_hours = [7, 8, 9, 10]
 hours = [i for i in range(0, 24)]
 months = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
           'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
+days = ['Sunday', 'Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday']
+tdh_years = [2020, 2021]
+tdh_months = ['January', 'February']

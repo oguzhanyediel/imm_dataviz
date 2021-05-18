@@ -209,6 +209,9 @@ def creating_bar_graph_for_occupancy(df, month='all'):
 
 
 def main():
+    """
+    :return: Plotly Figure
+    """
     df = data_preparation()
 
     # The localhost page is opened on the Internet browser.
@@ -223,6 +226,14 @@ def main():
     for m in config.dor_months:
         creating_bar_graph_for_occupancy(df=df.copy(), month=m)
     creating_bar_graph_for_occupancy(df=df.copy())
+
+
+def putting_into_datapane():
+    return
+
+
+def putting_into_streamlit():
+    return
 
 
 if __name__ == "__main__":

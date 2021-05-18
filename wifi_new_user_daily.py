@@ -115,6 +115,9 @@ def creating_stack_bar_graph(dat):
 
 
 def main():
+    """
+    :return: Plotly Figure
+    """
     df = data_preparation()
 
     # The localhost page is opened on the Internet browser.
@@ -124,6 +127,14 @@ def main():
     for c in ['subscription_county', 'subscription_type']:
         creating_bar_graph(df=df, col=c)
     creating_stack_bar_graph(dat=df)
+
+
+def putting_into_datapane():
+    return
+
+
+def putting_into_streamlit():
+    return
 
 
 if __name__ == "__main__":
