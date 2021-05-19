@@ -41,3 +41,19 @@ tdh_years = [2020, 2021]
 tdh_months = ['January', 'February']
 tdh_evening_rush_hours = [18, 19, 20]
 tdh_morning_rush_hours = [6, 7, 8, 9]
+announcement_type_desc = {'Kaza Bildirimi': 'Accident Notification',
+                          'Araç Arızası': 'Vehicle Breakdown',
+                          'Yoğun Trafik': 'Intense Traffic',
+                          'Bakım-Onarım Çalışması': 'Maintenance Working',
+                          'Çevre Düzenlemesi': 'Landscaping',
+                          'Yolun Trafiğe Kapanması': 'Road Closing to Traffic',
+                          'Haber': 'News',
+                          'Araç Yangını': 'Vehicle Fire',
+                          'Alt Yapı Çalışması': 'Infrastructure Work',
+                          'Yol Yapım Çalışması': 'Road Building',
+                          'Şehir Hatları Sefer Bildirisi': 'Cityline Trip Announcement',
+                          'İDO Sefer Bildirisi': 'İDO Trip Announcement',
+                          'Yolu Etkileyen Hava Koşulu': 'Weather Affecting the Road'}
+atd_list = ['Accident Notification', 'Intense Traffic', 'Vehicle Breakdown', 'Maintenance Working',
+            'Landscaping', 'Road Closing to Traffic', 'Vehicle Fire']
+tai_years = [2019]
