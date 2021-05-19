@@ -39,3 +39,5 @@ months = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June':
 days = ['Sunday', 'Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday']
 tdh_years = [2020, 2021]
 tdh_months = ['January', 'February']
+tdh_evening_rush_hours = [18, 19, 20]
+tdh_morning_rush_hours = [6, 7, 8, 9]
