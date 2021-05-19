@@ -141,6 +141,92 @@ def creating_bar_graph(df, type_, year=2020, month=None):
     fig.show()
 
 
+def creating_scatter_graph_data(data):
+    """
+    :param data: dataframe
+    :rtype: dataframe
+    """
+    # It will be relocated the position of time columns for the records that have a negative date difference.
+    # (announcement_ending_datetime - announcement_starting_datetime) < 0
+    # There were 122 incorrect records
+    data['diff_sec'] = (data.announcement_ending_datetime - data.announcement_starting_datetime).astype(
+        'timedelta64[s]')
+
+    # base columns
+    col_list = ['announcement_starting_datetime', 'announcement_ending_datetime', 'announcement_type_desc']
+
+    # getting normal records
+    data_ = pd.DataFrame(columns=col_list)
+    data_ = data_.append(data[data['diff_sec'] > 0][col_list].reset_index(drop=True))
+
+    # transforming abnormal records
+    change_data = data[data['diff_sec'] < 0][
+        ['announcement_ending_datetime', 'announcement_starting_datetime', 'announcement_type_desc']].reset_index(
+        drop=True)
+    change_data.columns = col_list
+    data_ = data_.append(change_data)
+
+    # adding diff seconds again
+    data_['diff_sec'] = (data_.announcement_ending_datetime - data_.announcement_starting_datetime).astype(
+        'timedelta64[s]')
+    data_.reset_index(drop=True, inplace=True)
+    return data_
+
+
+def grouping_types(df, t):
+    """
+    :param df: dataframe
+    :param t: string; diff_sec, diff_min or diff_hhh
+    :rtype: dataframe
+    """
+    dat = df[['announcement_type_desc', t]] \
+        .groupby('announcement_type_desc') \
+        .mean().reset_index() \
+        .rename(columns={t: 'avg_{0}'.format(t[-3:])})
+    return dat
+
+
+def creating_scatter_graph(df, type_, marker_size=50):
+    """
+    :param df: dataframe
+    :param type_: string
+    :param marker_size: int
+    :return: Plotly Scatter Graph
+    """
+    # getting grouping data
+    df_ = grouping_types(df=df.copy(), t=type_)
+
+    # changing numeric column name
+    t = 'avg_' + type_[-3:]
+
+    # finding the marker size for announcement types
+    df_type = df_.sort_values(t)
+    df_type['coeff'] = round(-(df_type[t].shift(1) - df_type[t]), 2)
+    df_type.reset_index(drop=True, inplace=True)
+    df_type['coeff'][0] = 0  # there is nan value in the first cell because of shift function
+    df_type['change'] = round(df_type['coeff'] / df_type[t], 2)
+
+    # vis
+    size_ = [marker_size + (marker_size * i) for i in df_type['change'].tolist()]
+    color_ = [i for i in range(0, len(df_type))]
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_type['announcement_type_desc'], y=df_type[t],
+                             mode='markers', marker=dict(size=size_, color=color_)))
+    fig.update_layout(
+        title='Average Duration Between the Start and End Time of Announcements [{0}]'.format(t[-3:-2]),
+        xaxis_title='Announcement Type Description',
+        yaxis_title='Avg Duration [{0}]'.format(t[-3:-2]),
+        legend_title="Announcement Type",
+        font=dict(
+            family='Verdana',
+            size=10,
+            color='black'
+        )
+    )
+    return fig.show()
+
+
 def main():
     """
     :return: Plotly Figure
@@ -155,11 +241,17 @@ def main():
     # graph part II
     df_ = creating_bar_graph_data(df)
     for t in config.atd_list:
-        creating_bar_graph(df=df_, type_=t, month=['March', 'July', 'October'])
+        creating_bar_graph(df=df_.copy(), type_=t, month=['March', 'July', 'October'])
         for y in config.tai_years:
-            creating_bar_graph(df=df_, type_=t, year=y)
+            creating_bar_graph(df=df_.copy(), type_=t, year=y)
 
     # graph part III
+    data_ = creating_scatter_graph_data(df)
+    data_['diff_min'] = round(data_['diff_sec'] / 60, 2)
+    data_['diff_hhh'] = round(data_['diff_min'] / 60, 2)
+    # fig = px.box(data_, x='announcement_type_desc', y='diff_min')
+    # fig.show()
+    creating_scatter_graph(df=data_, type_='diff_min')
 
 
 def putting_into_datapane():
