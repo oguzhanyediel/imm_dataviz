@@ -168,8 +168,6 @@ def creating_bar_graph_for_occupancy(df, month='all'):
     :param month: string
     :return: Plotly Bar Graph
     """
-    month_order = ['January', 'February', 'March', 'April', 'May', 'June',
-                   'July', 'August', 'September', 'October', 'November', 'December']
     if month != 'all':
         df_ = df[df['month'] == month].reset_index(drop=True)
         x_ = 'year'
@@ -179,7 +177,7 @@ def creating_bar_graph_for_occupancy(df, month='all'):
         df_1 = df[df['year'] != 2021].reset_index(drop=True)
         del df_1['year']
         df_2 = df_1.groupby('month').mean().reset_index()
-        df_ = df_2.set_index('month').reindex(month_order).reset_index()
+        df_ = df_2.set_index('month').reindex([key for key in config.months]).reset_index()
         x_ = 'month'
         xaxis_title_ = 'Month'
         title_ = 'Comparison of Avg Occupancy Rate based on Months [2005 - 2021)'
