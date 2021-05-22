@@ -7,6 +7,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objs as go
+import streamlit as st
 import utils
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -82,10 +83,12 @@ def creating_heatmap_graph(df, year, month):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
 
-    return fig.show()
+    return fig
 
 
 def creating_annotated_heatmap(df, year, month, annotation_type, htype='day', is_rush_hour=False,
@@ -191,9 +194,11 @@ def creating_annotated_heatmap(df, year, month, annotation_type, htype='day', is
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    return fig.show()
+    return fig
 
 
 def creating_density_mapbox(dat, year, month):
@@ -222,7 +227,8 @@ def creating_density_mapbox(dat, year, month):
                             title='Density Map of Average Vehicle Count by Month [{0} - {1}]'.format(month, year),
                             labels={'avg_number_of_vehicles': 'Avg Number of Vehicle'},
                             hover_data={'latitude': False, 'longitude': False, 'avg_number_of_vehicles': True})
-    fig.show()
+    fig.update_layout(width=900, height=650)
+    return fig
 
 
 def main():
@@ -233,7 +239,6 @@ def main():
 
     # The localhost page is opened on the Internet browser.
     # Each plot is presented in a separate browser tab.
-    # graph part I
     data = creating_heatmap_data(dat=df)
     for m in config.tdh_months:
         for y in config.tdh_years:
@@ -247,13 +252,33 @@ def main():
             creating_density_mapbox(dat=df, year=y, month=m)
 
 
+def putting_into_streamlit():
+    """
+    :return: None
+    """
+    df = data_preparation()
+    st.markdown("## **:car: Hourly Traffic Density Data Visualization**")
+    data = creating_heatmap_data(dat=df)
+    for m in config.tdh_months:
+        for y in config.tdh_years:
+            st.write(creating_heatmap_graph(df=data.copy(), year=y, month=m))
+    # Loop was repeated for graph order in Streamlit
+    for m in config.tdh_months:
+        for y in config.tdh_years:
+            st.write(creating_annotated_heatmap(df=data.copy(), year=y, month=m, annotation_type='Number'))
+            st.write(creating_annotated_heatmap(df=data.copy(), year=y, month=m, annotation_type='Percentage'))
+            st.write(
+                creating_annotated_heatmap(df=data.copy(), year=y, month=m, annotation_type='Percentage', htype='hour'))
+    # Loop was repeated for graph order in Streamlit
+    for m in config.tdh_months:
+        for y in config.tdh_years:
+            st.write(creating_density_mapbox(dat=df, year=y, month=m))
+
+
 def putting_into_datapane():
     return
 
 
-def putting_into_streamlit():
-    return
-
-
 if __name__ == "__main__":
-    main()
+    # main()
+    putting_into_streamlit()

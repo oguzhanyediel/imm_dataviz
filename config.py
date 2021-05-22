@@ -63,4 +63,5 @@ announcement_type_desc = {'Kaza Bildirimi': 'Accident Notification',
                           'Yolu Etkileyen Hava Koşulu': 'Weather Affecting the Road'}
 atd_list = ['Accident Notification', 'Intense Traffic', 'Vehicle Breakdown', 'Maintenance Working',
             'Landscaping', 'Road Closing to Traffic', 'Vehicle Fire']
+atd_list_ = ['Accident Notification', 'Intense Traffic', 'Vehicle Breakdown']
 tai_years = [2019]

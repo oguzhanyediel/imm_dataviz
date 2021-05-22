@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
+import streamlit as st
 import utils
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -64,9 +65,11 @@ def creating_line_graph(df):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    fig.show()
+    return fig
 
 
 def creating_bar_graph_data(df):
@@ -109,7 +112,7 @@ def creating_bar_graph(df, type_, year=2020, month=None):
         # plot params
         y_ = 'avg_count'
         y_labels = 'Avg Count'
-        title_ = '{0} - Comparison of Average Announcement Count based on Months [2017 December - 2021 March]'.format(
+        title_ = '{0} - Comparison of Average Announcement Count based on Months [2018 January - 2021 April)'.format(
             type_)
         yt_ = 'Avg [{0}] Count'.format(type_)
 
@@ -136,9 +139,11 @@ def creating_bar_graph(df, type_, year=2020, month=None):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    fig.show()
+    return fig
 
 
 def creating_scatter_graph_data(data):
@@ -222,9 +227,11 @@ def creating_scatter_graph(df, type_, marker_size=50):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    return fig.show()
+    return fig
 
 
 def main():
@@ -254,13 +261,33 @@ def main():
     creating_scatter_graph(df=data_, type_='diff_min')
 
 
+def putting_into_streamlit():
+    """
+    :return: None
+    """
+    df = data_preparation()
+
+    st.markdown("## **:loudspeaker: Transportation Management Center Traffic Announcement Data Visualization**")
+    st.write(creating_line_graph(df))
+
+    df_ = creating_bar_graph_data(df)
+    # Please use the config.atd_list for all announcement type descriptions
+    for t in config.atd_list_:
+        # It can be given desired months in the month variable
+        st.write(creating_bar_graph(df=df_.copy(), type_=t, month=['March', 'July', 'October']))
+        for y in config.tai_years:
+            st.write(creating_bar_graph(df=df_.copy(), type_=t, year=y))
+
+    data_ = creating_scatter_graph_data(df)
+    data_['diff_min'] = round(data_['diff_sec'] / 60, 2)
+    data_['diff_hhh'] = round(data_['diff_min'] / 60, 2)
+    st.write(creating_scatter_graph(df=data_, type_='diff_min'))
+
+
 def putting_into_datapane():
     return
 
 
-def putting_into_streamlit():
-    return
-
-
 if __name__ == "__main__":
-    main()
+    # main()
+    putting_into_streamlit()
