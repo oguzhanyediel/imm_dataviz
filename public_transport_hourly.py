@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
+import streamlit as st
 import utils
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -103,10 +104,8 @@ def creating_line_graph_based_day(df_2020, df_2021, col, m=1):
         yxs = 'Avg Passage Count'
         nm = 'Avg Passage Count'
 
-    if m == 2:
-        nm_month = 'February'
-    else:
-        nm_month = 'January'
+    reverse_months = [{value: key for key, value in config.months.items()}][0]
+    nm_month = reverse_months[m]
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_2020['day_value'], y=df_2020[col], line=dict(color='royalblue'),
@@ -122,9 +121,11 @@ def creating_line_graph_based_day(df_2020, df_2021, col, m=1):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    return fig.show()
+    return fig
 
 
 def creating_bar_graph_data(bar_part, base_data, y, m, t='Highway'):
@@ -179,8 +180,8 @@ def creating_bar_graph_based_transport_type(dat, col):
 
         fig = px.bar(x=data['transport_type_desc'], color=data['date'], y=data[y_], text=data[text_], title=title_,
                      barmode='group')
-        fig.update_layout(xaxis_title='Type', yaxis_title=yaxis_title_)
-        fig.show()
+        fig.update_layout(xaxis_title='Type', yaxis_title=yaxis_title_, width=900, height=650)
+        return fig
 
 
 def creating_bar_graph_based_transport_type_in_details(dat, value_type, type_desc):
@@ -211,8 +212,8 @@ def creating_bar_graph_based_transport_type_in_details(dat, value_type, type_des
                          data['date'].unique().tolist()[1]: '#08e8de'
                          },
                      y=value_type, title=title_, barmode='group')
-        fig.update_layout(xaxis_title='Line', yaxis_title=yxs)
-        fig.show()
+        fig.update_layout(xaxis_title='Line', yaxis_title=yxs, width=900, height=650)
+        return fig
 
 
 def creating_avg_data_all_date_breakdown(df, lines, time_type, d=None, h=None):
@@ -311,7 +312,9 @@ def creating_line_graph_based_date(time_type, df_2020, df_2021, col, m=1):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
 
     fig_21.update_layout(
@@ -323,10 +326,13 @@ def creating_line_graph_based_date(time_type, df_2020, df_2021, col, m=1):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
 
-    return fig_20.show(), fig_21.show()
+    # return fig_20.show(), fig_21.show() # for main() function
+    return [fig_20, fig_21]
 
 
 def creating_line_graph_for_single_line(time_type, df_2020, df_2021, col, sline, m=1):
@@ -359,11 +365,11 @@ def creating_line_graph_for_single_line(time_type, df_2020, df_2021, col, sline,
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_2020['hour'], y=df_2020[col],
                              line=dict(color='royalblue'),
-                             showlegend=True, name='{0}'.format(sline) + ' // {0} 2020'.format(nm_month),
+                             showlegend=True, name='{0}'.format(sline[0]) + ' // {0} 2020'.format(nm_month),
                              mode='lines'))
     fig.add_trace(go.Scatter(x=df_2021['hour'], y=df_2021[col],
                              line=dict(color='firebrick'),
-                             showlegend=True, name='{0}'.format(sline) + ' // {0} 2021'.format(nm_month),
+                             showlegend=True, name='{0}'.format(sline[0]) + ' // {0} 2021'.format(nm_month),
                              mode='lines'))
 
     fig.update_layout(
@@ -375,9 +381,11 @@ def creating_line_graph_for_single_line(time_type, df_2020, df_2021, col, sline,
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    return fig.show()
+    return fig
 
 
 def main():
@@ -444,13 +452,63 @@ def main():
                                                 col=col_, sline=config.pth_lines_single, m=m_)
 
 
+def putting_into_streamlit():
+    """
+    :return: None
+    """
+    df = data_preparation()
+    st.markdown("## **:bus: Hourly Public Transport Data Visualization :oncoming_bus:**")
+    for m in config.pth_months:
+        df_20 = data_generator(data=df, year=2020, month=m)
+        df_21 = data_generator(data=df, year=2021, month=m)
+        for col in config.pth_cols:
+            m_ = [config.months[key] for key in config.months if key == m][0]
+            st.write(creating_line_graph_based_day(creating_day_avg_data(df_20.copy()),
+                                                   creating_day_avg_data(df_21.copy()),
+                                                   col='avg_' + col, m=m_))
+    for col in config.pth_cols:
+        st.write(creating_bar_graph_based_transport_type(dat=df.copy(), col=col))
+    for col in config.pth_cols:
+        for t in config.pth_types:
+            st.write(creating_bar_graph_based_transport_type_in_details(dat=df.copy(), value_type=col, type_desc=t))
+    for m in config.pth_months:
+        df_20 = data_generator(data=df.copy(), year=2020, month=m, is_line=True)
+        df_21 = data_generator(data=df.copy(), year=2021, month=m, is_line=True)
+        m_ = [config.months[key] for key in config.months if key == m][0]
+        for c in config.pth_cols:
+            col_ = 'avg_' + c
+            # Hour
+            h_20 = creating_avg_data_all_date_breakdown(df=df_20.copy(), lines=config.pth_lines, time_type='hours',
+                                                        h=config.pth_hours)
+            h_21 = creating_avg_data_all_date_breakdown(df=df_21.copy(), lines=config.pth_lines, time_type='hours',
+                                                        h=config.pth_hours)
+            fig_list = creating_line_graph_based_date(time_type='hours',
+                                                      df_2020=h_20.copy().rename(columns={'hour': 'date'}),
+                                                      df_2021=h_21.copy().rename(columns={'hour': 'date'}),
+                                                      col=col_, m=m_)
+            st.write(fig_list[0])
+            st.write(fig_list[1])
+    # It was repeated for graph order in Streamlit
+    for m in config.pth_months:
+        df_20 = data_generator(data=df.copy(), year=2020, month=m, is_line=True)
+        df_21 = data_generator(data=df.copy(), year=2021, month=m, is_line=True)
+        m_ = [config.months[key] for key in config.months if key == m][0]
+        for c in config.pth_cols:
+            col_ = 'avg_' + c
+            # Single line - All hours
+            ah_20 = creating_avg_data_all_date_breakdown(df=df_20.copy(), lines=config.pth_lines_single,
+                                                         time_type='hours', h=config.hours)
+            ah_21 = creating_avg_data_all_date_breakdown(df=df_21.copy(), lines=config.pth_lines_single,
+                                                         time_type='hours', h=config.hours)
+            st.write(creating_line_graph_for_single_line(time_type='hours', df_2020=ah_20.copy(), df_2021=ah_21.copy(),
+                                                         col=col_, sline=config.pth_lines_single, m=m_))
+
+
 def putting_into_datapane():
     return
 
 
-def putting_into_streamlit():
-    return
-
-
 if __name__ == "__main__":
-    main()
+    # Please run the main function if it will be presented the whole graphs
+    # main()
+    putting_into_streamlit()

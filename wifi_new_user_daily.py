@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
+import streamlit as st
 import utils
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -55,9 +56,11 @@ def creating_line_graph_based_date(df, date_type):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    return fig.show()
+    return fig
 
 
 def creating_bar_graph(df, col):
@@ -87,9 +90,11 @@ def creating_bar_graph(df, col):
             size=10,
             color='black'
         ),
-        showlegend=False
+        showlegend=False,
+        width=900,
+        height=650
     )
-    return fig.show()
+    return fig
 
 
 def creating_stack_bar_graph(dat):
@@ -109,9 +114,9 @@ def creating_stack_bar_graph(dat):
                  barmode='stack', text=df_stack['percentage'])
 
     fig.update_layout(title="Subscription Count by County & Type", xaxis_title='County',
-                      yaxis_title='Subscription Count')
+                      yaxis_title='Subscription Count', width=900, height=650)
 
-    return fig.show()
+    return fig
 
 
 def main():
@@ -129,14 +134,27 @@ def main():
     creating_stack_bar_graph(dat=df)
 
 
+def putting_into_streamlit():
+    """
+    :return: None
+    """
+    df = data_preparation()
+    st.markdown("## **:signal_strength: Daily IMM WiFi New User Data Visualization**")
+
+    for dt in config.date_type:
+        st.write(creating_line_graph_based_date(df=df, date_type=dt))
+
+    for c in ['subscription_county', 'subscription_type']:
+        st.write(creating_bar_graph(df=df, col=c))
+
+    st.write(creating_stack_bar_graph(dat=df))
+
+
 def putting_into_datapane():
     return
 
 
-def putting_into_streamlit():
-    return
-
-
 if __name__ == "__main__":
-    main()
+    # main()
+    putting_into_streamlit()
 

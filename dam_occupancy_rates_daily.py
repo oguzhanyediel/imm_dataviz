@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
+import streamlit as st
 import utils
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -72,9 +73,11 @@ def creating_line_graph_based_date(df, date_type, col):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    return fig.show()
+    return fig
 
 
 def classify(e):
@@ -155,11 +158,13 @@ def creating_colorful_line_graph_based_date(df, col):
             family='Verdana',
             size=10,
             color='white'
-        )
+        ),
+        width=900,
+        height=650
     )
     fig.update_xaxes(showgrid=False)
     fig.update_layout(uirevision='constant')
-    return fig.show()
+    return fig
 
 
 def creating_bar_graph_for_occupancy(df, month='all'):
@@ -168,13 +173,19 @@ def creating_bar_graph_for_occupancy(df, month='all'):
     :param month: string
     :return: Plotly Bar Graph
     """
+    df['year'] = df['date'].apply(lambda row: row.year)
+    df['month'] = df['date'].apply(lambda row: row.month_name())
+    df_pre = df[['year', 'month', 'occupancy_rate']]\
+        .groupby(['year', 'month']).mean().reset_index()\
+        .rename(columns={'occupancy_rate': 'avg_occupancy_rate'})
+
     if month != 'all':
-        df_ = df[df['month'] == month].reset_index(drop=True)
+        df_ = df_pre[df_pre['month'] == month].reset_index(drop=True)
         x_ = 'year'
         xaxis_title_ = 'Year'
         title_ = 'Comparison of Avg Occupancy Rate based on Year [only {0}]'.format(month)
     else:
-        df_1 = df[df['year'] != 2021].reset_index(drop=True)
+        df_1 = df_pre[df_pre['year'] != 2021].reset_index(drop=True)
         del df_1['year']
         df_2 = df_1.groupby('month').mean().reset_index()
         df_ = df_2.set_index('month').reindex([key for key in config.months]).reset_index()
@@ -187,7 +198,7 @@ def creating_bar_graph_for_occupancy(df, month='all'):
     # vis
     fig = px.bar(df_, x=x_, y='avg_occupancy_rate', color='avg_occupancy_rate',
                  labels={'avg_occupancy_rate': 'Avg Occupancy Rate'}, color_continuous_scale=px.colors.sequential.Jet,
-                 opacity=0.75)
+                 opacity=0.60)
 
     fig.update_layout(
         title=title_,
@@ -201,9 +212,11 @@ def creating_bar_graph_for_occupancy(df, month='all'):
             family='Verdana',
             size=10,
             color='black'
-        )
+        ),
+        width=900,
+        height=650
     )
-    return fig.show()
+    return fig
 
 
 def main():
@@ -226,13 +239,31 @@ def main():
     creating_bar_graph_for_occupancy(df=df.copy())
 
 
+def putting_into_streamlit():
+    """
+    :return: None
+    """
+    df = data_preparation()
+    st.markdown("## **:ocean: Istanbul Dam Occupancy Rates Visualization**")
+
+    for dt in config.date_type:
+        for col in config.dor_cols:
+            st.write(creating_line_graph_based_date(df=df.copy(), date_type=dt, col=col))
+
+    # if it will be run this code block, please use the dark theme in streamlit
+    # for c in config.dor_cols:
+    #     st.write(creating_colorful_line_graph_based_date(df=df.copy(), col=c))
+
+    for m in config.dor_months:
+        st.write(creating_bar_graph_for_occupancy(df=df.copy(), month=m))
+
+    st.write(creating_bar_graph_for_occupancy(df=df.copy()))
+
+
 def putting_into_datapane():
     return
 
 
-def putting_into_streamlit():
-    return
-
-
 if __name__ == "__main__":
-    main()
+    # main()
+    putting_into_streamlit()
