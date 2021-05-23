@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import config
+import datapane as dp
 import logging
 import pandas as pd
 import plotly.express as px
@@ -261,9 +262,40 @@ def putting_into_streamlit():
 
 
 def putting_into_datapane():
-    return
+    """
+    :return: None
+    """
+    # getting token
+    dp.login(config.dp_token)
+
+    # getting data
+    df = data_preparation()
+
+    # colorful line graph
+    p1 = creating_colorful_line_graph_based_date(df=df.copy(), col='occupancy_rate')
+    dp.Report(dp.Plot(p1)).publish(name='Daily General Dam Occupancy Rate', open=True)
+
+    # line graph
+    p2 = creating_line_graph_based_date(df=df.copy(), date_type='monthly', col='reserved_water')
+    dp.Report(dp.Plot(p2)).publish(name='Monthly General Dam Reserved Water', open=True)
+
+    # bar graphs - single month & year based
+    bplot1 = creating_bar_graph_for_occupancy(df=df.copy(), month='October')
+    bp1 = dp.Page(title='October', blocks=[bplot1])
+    bplot2 = creating_bar_graph_for_occupancy(df=df.copy(), month='January')
+    bp2 = dp.Page(title='January', blocks=[bplot2])
+    bplot3 = creating_bar_graph_for_occupancy(df=df.copy(), month='July')
+    bp3 = dp.Page(title='July', blocks=[bplot3])
+    dp.Report(bp1, bp2, bp3).publish(name='Comparison of Avg Occupancy Rate based on Year', open=True)
+
+    # bar graph - all years & month based
+    p3 = creating_bar_graph_for_occupancy(df=df.copy())
+    dp.Report(dp.Plot(p3)).publish(name='Comparison of Avg Occupancy Rate based on Months', open=True)
+
+    dp.logout()
 
 
 if __name__ == "__main__":
     # main()
     putting_into_streamlit()
+    # putting_into_datapane()

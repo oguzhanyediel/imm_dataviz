@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import config
+import datapane as dp
 import logging
 import pandas as pd
 import plotly.express as px
@@ -47,7 +48,8 @@ def creating_line_graph_based_date(df, date_type):
     df_grouped = df[['subscription_date', 'number_of_subscription']].groupby('subscription_date').sum().reset_index()
 
     fig = go.Figure(data=go.Scatter(x=df_grouped['subscription_date'], y=df_grouped['number_of_subscription'],
-                                    showlegend=True, name="Number of Subscription", mode=mode_))
+                                    marker_color=df_grouped['number_of_subscription'], showlegend=True,
+                                    name="Number of Subscription", mode=mode_))
     fig.update_layout(
         title=title_,
         xaxis_title='Date',
@@ -151,10 +153,28 @@ def putting_into_streamlit():
 
 
 def putting_into_datapane():
-    return
+    """
+    :return: None
+    """
+    # getting token
+    dp.login(config.dp_token)
+    # getting data
+    df = data_preparation()
+    # line graph
+    p1 = creating_line_graph_based_date(df=df, date_type='monthly')
+    dp.Report(dp.Plot(p1)).publish(name='Monthly Subscription Count', open=True)
+    # bar graph
+    p2 = creating_bar_graph(df=df, col='subscription_county')
+    dp.Report(dp.Plot(p2)).publish(name='Subscription Count by County', open=True)
+    # stack bar graph
+    p3 = creating_stack_bar_graph(dat=df)
+    dp.Report(dp.Plot(p3)).publish(name='Subscription Count by County & Type', open=True)
+
+    dp.logout()
 
 
 if __name__ == "__main__":
     # main()
     putting_into_streamlit()
+    # putting_into_datapane()
 

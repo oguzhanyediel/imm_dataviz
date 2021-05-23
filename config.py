@@ -6,6 +6,9 @@
 # This configuration file can contain the necessary information of the project,
 # such as database connections credentials, some important variables, etc.
 
+# datapane token
+dp_token = 'YOUR_TOKEN'
+
 # data sets URLs
 dam_occ_rates_data_url = 'https://data.ibb.gov.tr/en/dataset/19c14482-14f2-4803-b4df-4cf4c6c42016/resource/b68cbdb0-9bf5-474c-91c4-9256c07c4bdf/download/dam_occupancy.csv'
 # URL lists are easily changeable, it can be taken the other months

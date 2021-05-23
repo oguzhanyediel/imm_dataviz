@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import config
+import datapane as dp
 import logging
 import numpy as np
 import pandas as pd
@@ -505,10 +506,75 @@ def putting_into_streamlit():
 
 
 def putting_into_datapane():
-    return
+    """
+    :return: None
+    """
+    # getting token
+    dp.login(config.dp_token)
+
+    # getting data
+    df = data_preparation()
+
+    # line graph 1
+    p1 = creating_line_graph_based_day(
+        creating_day_avg_data(data_generator(data=df, year=2020, month='January').copy()),
+        creating_day_avg_data(data_generator(data=df, year=2021, month='January').copy()),
+        col='avg_number_of_passenger', m=1)
+    dp.Report(dp.Plot(p1)).publish(name='Daily Average Passenger Count', open=True)
+
+    # line graph 2
+    p2 = creating_line_graph_based_day(
+        creating_day_avg_data(data_generator(data=df, year=2020, month='February').copy()),
+        creating_day_avg_data(data_generator(data=df, year=2021, month='February').copy()),
+        col='avg_number_of_passage', m=2)
+    dp.Report(dp.Plot(p2)).publish(name='Daily Average Passage Count', open=True)
+
+    # bar graph 1
+    p3 = creating_bar_graph_based_transport_type(dat=df.copy(), col='number_of_passenger')
+    dp.Report(dp.Plot(p3)).publish(name='Passenger Count by Transport Type', open=True)
+
+    # bar graph 2
+    bplot1 = creating_bar_graph_based_transport_type_in_details(dat=df.copy(), value_type='number_of_passenger',
+                                                                type_desc='Highway')
+    bp1 = dp.Page(title='Highway', blocks=[bplot1])
+    bplot2 = creating_bar_graph_based_transport_type_in_details(dat=df.copy(), value_type='number_of_passenger',
+                                                                type_desc='Rail')
+    bp2 = dp.Page(title='Rail', blocks=[bplot2])
+    bplot3 = creating_bar_graph_based_transport_type_in_details(dat=df.copy(), value_type='number_of_passenger',
+                                                                type_desc='Sea')
+    bp3 = dp.Page(title='Sea', blocks=[bplot3])
+    dp.Report(bp1, bp2, bp3).publish(name='Passenger Count by Transport Line', open=True)
+
+    # line graph 3
+    h_20 = creating_avg_data_all_date_breakdown(
+        df=data_generator(data=df.copy(), year=2020, month='February', is_line=True).copy(), lines=config.pth_lines,
+        time_type='hours', h=config.pth_hours)
+    h_21 = creating_avg_data_all_date_breakdown(
+        df=data_generator(data=df.copy(), year=2021, month='February', is_line=True).copy(), lines=config.pth_lines,
+        time_type='hours', h=config.pth_hours)
+    fig_list = creating_line_graph_based_date(time_type='hours', df_2020=h_20.copy().rename(columns={'hour': 'date'}),
+                                              df_2021=h_21.copy().rename(columns={'hour': 'date'}),
+                                              col='avg_number_of_passenger', m=2)
+    lp1 = dp.Page(title='February 2020', blocks=[fig_list[0]])
+    lp2 = dp.Page(title='February 2021', blocks=[fig_list[1]])
+    dp.Report(lp1, lp2).publish(name='Average Passenger Count by Given Times', open=True)
+
+    # line graph 4
+    ah_20 = creating_avg_data_all_date_breakdown(
+        df=data_generator(data=df.copy(), year=2020, month='January', is_line=True).copy(),
+        lines=config.pth_lines_single, time_type='hours', h=config.hours)
+    ah_21 = creating_avg_data_all_date_breakdown(
+        df=data_generator(data=df.copy(), year=2021, month='January', is_line=True).copy(),
+        lines=config.pth_lines_single, time_type='hours', h=config.hours)
+    p4 = creating_line_graph_for_single_line(time_type='hours', df_2020=ah_20.copy(), df_2021=ah_21.copy(),
+                                             col='avg_number_of_passenger', sline=config.pth_lines_single, m=1)
+    dp.Report(dp.Plot(p4)).publish(name='Average Passenger Count by Given Times [Single Line]', open=True)
+
+    dp.logout()
 
 
 if __name__ == "__main__":
     # Please run the main function if it will be presented the whole graphs
     # main()
     putting_into_streamlit()
+    # putting_into_datapane()
