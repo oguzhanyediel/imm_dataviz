@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import config
+import datapane as dp
 import logging
 import pandas as pd
 import plotly.express as px
@@ -168,7 +169,7 @@ def creating_annotated_heatmap(df, year, month, annotation_type, htype='day', is
                                          x=df_to_plotly_heatmap_data(df_pivot.reindex(days_, axis=axis_))['x'],
                                          y=df_to_plotly_heatmap_data(df_pivot.reindex(days_, axis=axis_))['y'],
                                          showscale=True, colorbar=dict(title=cb_title))
-    fig = go.FigureWidget(ff_fig)
+    # fig = go.FigureWidget(ff_fig)
 
     # arrangements
     if htype == 'hour':
@@ -178,7 +179,7 @@ def creating_annotated_heatmap(df, year, month, annotation_type, htype='day', is
         xaxis_title = 'Day'
         yaxis_title = 'Hour'
 
-    fig.update_layout(
+    ff_fig.update_layout(
         title=title_,
         xaxis=dict(
             title=xaxis_title,
@@ -198,7 +199,7 @@ def creating_annotated_heatmap(df, year, month, annotation_type, htype='day', is
         width=900,
         height=650
     )
-    return fig
+    return ff_fig
 
 
 def creating_density_mapbox(dat, year, month):
@@ -276,9 +277,43 @@ def putting_into_streamlit():
 
 
 def putting_into_datapane():
-    return
+    """
+    :return: None
+    """
+    # getting token
+    dp.login(config.dp_token)
+
+    # getting data
+    df = data_preparation()
+    data = creating_heatmap_data(dat=df)
+
+    # heatmap
+    hplot1 = creating_heatmap_graph(df=data.copy(), year=2020, month='January')
+    hp1 = dp.Page(title='January 2020', blocks=[hplot1])
+    hplot2 = creating_heatmap_graph(df=data.copy(), year=2021, month='January')
+    hp2 = dp.Page(title='January 2021', blocks=[hplot2])
+    dp.Report(hp1, hp2).publish(name='Traffic Density Heatmap', open=True)
+
+    # annotated heatmap
+    ahplot1 = creating_annotated_heatmap(df=data.copy(), year=2020, month='February', annotation_type='Number',
+                                         is_rush_hour=True, rush_hour_type='Evening')
+    ahp1 = dp.Page(title='February 2020', blocks=[ahplot1])
+    ahplot2 = creating_annotated_heatmap(df=data.copy(), year=2021, month='February', annotation_type='Number',
+                                         is_rush_hour=True, rush_hour_type='Evening')
+    ahp2 = dp.Page(title='February 2021', blocks=[ahplot2])
+    dp.Report(ahp1, ahp2).publish(name='Traffic Density Annotated Heatmap', open=True)
+
+    # density mapbox
+    dmplot1 = creating_density_mapbox(dat=df, year=2020, month='January')
+    dmp1 = dp.Page(title='January 2020', blocks=[dmplot1])
+    dmplot2 = creating_density_mapbox(dat=df, year=2021, month='January')
+    dmp2 = dp.Page(title='January 2021', blocks=[dmplot2])
+    dp.Report(dmp1, dmp2).publish(name='Density Map of Average Vehicle Count', open=True)
+
+    dp.logout()
 
 
 if __name__ == "__main__":
     # main()
     putting_into_streamlit()
+    # putting_into_datapane()

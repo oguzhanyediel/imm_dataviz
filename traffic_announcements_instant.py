@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import config
+import datapane as dp
 import logging
 import numpy as np
 import pandas as pd
@@ -285,9 +286,41 @@ def putting_into_streamlit():
 
 
 def putting_into_datapane():
-    return
+    """
+    :return: None
+    """
+    # getting token
+    dp.login(config.dp_token)
+
+    # getting data
+    df = data_preparation()
+
+    # line graph
+    p1 = creating_line_graph(df)
+    dp.Report(dp.Plot(p1)).publish(name='Total Announcement Count', open=True)
+
+    # bar graph
+    df_ = creating_bar_graph_data(df)
+    bplot1 = creating_bar_graph(df=df_.copy(), type_='Accident Notification', year=2019)
+    bp1 = dp.Page(title='Accident Notification - 2019', blocks=[bplot1])
+    bplot2 = creating_bar_graph(df=df_.copy(), type_='Accident Notification', year=2020)
+    bp2 = dp.Page(title='Accident Notification - 2020', blocks=[bplot2])
+    dp.Report(bp1, bp2).publish('Comparison of Total Accident Notification Count', open=True)
+
+    # bar graph 2
+    p2 = creating_bar_graph(df=df_.copy(), type_='Vehicle Breakdown', month=['March', 'July', 'October'])
+    dp.Report(dp.Plot(p2)).publish(name='Vehicle Breakdown - Comparison of Average Count', open=True)
+
+    # scatter graph
+    data_ = creating_scatter_graph_data(df)
+    data_['diff_min'] = round(data_['diff_sec'] / 60, 2)
+    p3 = creating_scatter_graph(df=data_, type_='diff_min')
+    dp.Report(dp.Plot(p3)).publish(name='Average Duration Between the Start and End Time of Announcements', open=True)
+
+    dp.logout()
 
 
 if __name__ == "__main__":
     # main()
     putting_into_streamlit()
+    # putting_into_datapane()
