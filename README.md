@@ -8,7 +8,7 @@ Files can be run manually by using the following commands, or it can be used Doc
 
 ```streamlit run file.py```
 
-*I had a hard time running Dockerfile because of M1 Chip. I put a sample Dockerfile for a python file though. The sh file can be used to run other python files in batches.*
+*I had a hard time running Dockerfile because of M1 Chip. Nevertheless, I was able to put a sample Dockerfile for a python file. The sh file can be used to run other python files in batches, or there is another option for this situation; Every py file should be run in a separate container.*
 
 It can be run Dockerfile with the below commands.
 
